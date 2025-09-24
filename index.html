@@ -1,0 +1,1973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statisticade - Interactive Statistics Learning Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .interactive-curve {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .interactive-curve:hover {
+            filter: brightness(1.1);
+        }
+        
+        .token-animation {
+            animation: tokenBounce 0.6s ease-out;
+        }
+        
+        @keyframes tokenBounce {
+            0% { transform: scale(0) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(180deg); }
+            100% { transform: scale(1) rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen gradient-bg flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">📊 Statisticade</h1>
+                <p class="text-gray-600">Interactive Statistics Learning Platform</p>
+            </div>
+            
+            <div id="loginForm">
+                <h2 class="text-2xl font-semibold mb-6 text-center">Welcome Back!</h2>
+                <div class="space-y-4">
+                    <input type="text" id="username" placeholder="Username" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="password" id="password" placeholder="4-digit PIN" maxlength="4"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <button onclick="login()" class="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors">
+                        Login
+                    </button>
+                </div>
+                <p class="text-center mt-4 text-gray-600">
+                    New user? <button onclick="showSignup()" class="text-blue-600 hover:underline">Sign up here</button>
+                </p>
+            </div>
+            
+            <div id="signupForm" class="hidden">
+                <h2 class="text-2xl font-semibold mb-6 text-center">Join Statisticade!</h2>
+                <div class="space-y-4">
+                    <input type="text" id="newUsername" placeholder="Choose Username" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="password" id="newPassword" placeholder="Create 4-digit PIN" maxlength="4"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <button onclick="signup()" class="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition-colors">
+                        Create Account
+                    </button>
+                </div>
+                <p class="text-center mt-4 text-gray-600">
+                    Already have an account? <button onclick="showLogin()" class="text-blue-600 hover:underline">Login here</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="mainDashboard" class="hidden">
+        <!-- Navigation Header -->
+        <nav class="bg-white shadow-lg sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <h1 class="text-2xl font-bold text-gray-800">📊 Statisticade</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center bg-yellow-100 px-3 py-1 rounded-full">
+                            <span class="text-yellow-600 font-semibold">🪙 <span id="tokenCount">0</span> Tokens</span>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            Welcome, <span id="currentUser" class="font-semibold"></span>
+                        </div>
+                        <button onclick="logout()" class="text-red-600 hover:text-red-800">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Dashboard Overview -->
+            <div id="dashboardView" class="space-y-8">
+                <!-- Progress Overview -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold mb-4">Your Learning Journey</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-blue-600" id="completedLessons">0</div>
+                            <div class="text-gray-600">Lessons Completed</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-green-600" id="currentStreak">0</div>
+                            <div class="text-gray-600">Day Streak</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-purple-600" id="totalScore">0</div>
+                            <div class="text-gray-600">Total Score</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Learning Paths -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold mb-6">Learning Paths</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="card-hover bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-xl cursor-pointer" onclick="openLearningPath('basics')">
+                            <div class="text-2xl mb-2">📈</div>
+                            <h3 class="text-xl font-semibold mb-2">Statistics Basics</h3>
+                            <p class="text-blue-100 mb-4">Mean, Median, Mode & Range</p>
+                            <div class="bg-white bg-opacity-20 rounded-full h-2 mb-2">
+                                <div class="bg-white rounded-full h-2 progress-bar" style="width: 0%" id="basicsProgress"></div>
+                            </div>
+                            <div class="text-sm">0/5 lessons completed</div>
+                        </div>
+
+                        <div class="card-hover bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-xl cursor-pointer" onclick="openLearningPath('dispersion')">
+                            <div class="text-2xl mb-2">📊</div>
+                            <h3 class="text-xl font-semibold mb-2">Dispersion</h3>
+                            <p class="text-green-100 mb-4">Variance & Standard Deviation</p>
+                            <div class="bg-white bg-opacity-20 rounded-full h-2 mb-2">
+                                <div class="bg-white rounded-full h-2 progress-bar" style="width: 0%" id="dispersionProgress"></div>
+                            </div>
+                            <div class="text-sm">0/4 lessons completed</div>
+                        </div>
+
+                        <div class="card-hover bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl cursor-pointer" onclick="openLearningPath('probability')">
+                            <div class="text-2xl mb-2">🎲</div>
+                            <h3 class="text-xl font-semibold mb-2">Probability</h3>
+                            <p class="text-purple-100 mb-4">Chance & Likelihood</p>
+                            <div class="bg-white bg-opacity-20 rounded-full h-2 mb-2">
+                                <div class="bg-white rounded-full h-2 progress-bar" style="width: 0%" id="probabilityProgress"></div>
+                            </div>
+                            <div class="text-sm">0/6 lessons completed</div>
+                        </div>
+
+                        <div class="card-hover bg-gradient-to-br from-red-500 to-red-600 text-white p-6 rounded-xl cursor-pointer" onclick="openLearningPath('correlation')">
+                            <div class="text-2xl mb-2">🔗</div>
+                            <h3 class="text-xl font-semibold mb-2">Correlation</h3>
+                            <p class="text-red-100 mb-4">Relationships in Data</p>
+                            <div class="bg-white bg-opacity-20 rounded-full h-2 mb-2">
+                                <div class="bg-white rounded-full h-2 progress-bar" style="width: 0%" id="correlationProgress"></div>
+                            </div>
+                            <div class="text-sm">0/4 lessons completed</div>
+                        </div>
+
+                        <div class="card-hover bg-gradient-to-br from-yellow-500 to-yellow-600 text-white p-6 rounded-xl cursor-pointer" onclick="openLearningPath('regression')">
+                            <div class="text-2xl mb-2">📉</div>
+                            <h3 class="text-xl font-semibold mb-2">Regression</h3>
+                            <p class="text-yellow-100 mb-4">Prediction & Modeling</p>
+                            <div class="bg-white bg-opacity-20 rounded-full h-2 mb-2">
+                                <div class="bg-white rounded-full h-2 progress-bar" style="width: 0%" id="regressionProgress"></div>
+                            </div>
+                            <div class="text-sm">0/5 lessons completed</div>
+                        </div>
+
+                        <div class="card-hover bg-gradient-to-br from-indigo-500 to-indigo-600 text-white p-6 rounded-xl cursor-pointer" onclick="openInteractiveSimulator()">
+                            <div class="text-2xl mb-2">🎮</div>
+                            <h3 class="text-xl font-semibold mb-2">Interactive Simulator</h3>
+                            <p class="text-indigo-100 mb-4">Manipulate Normal Curves</p>
+                            <div class="text-sm">Explore statistical models</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">🎯 Daily Challenge</h3>
+                        <p class="text-gray-600 mb-4">Test your knowledge with today's challenge!</p>
+                        <button onclick="startDailyChallenge()" class="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                            Start Challenge
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">🎭 Role-Playing Game</h3>
+                        <p class="text-gray-600 mb-4">Apply statistics in real-world scenarios!</p>
+                        <button onclick="startRolePlayingGame()" class="bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+                            Start Adventure
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Path View -->
+            <div id="learningPathView" class="hidden">
+                <div class="mb-6">
+                    <button onclick="backToDashboard()" class="text-blue-600 hover:text-blue-800 mb-4">← Back to Dashboard</button>
+                    <h2 id="pathTitle" class="text-3xl font-bold mb-2"></h2>
+                    <p id="pathDescription" class="text-gray-600"></p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <div id="lessonContent" class="bg-white rounded-xl shadow-lg p-6">
+                            <!-- Lesson content will be loaded here -->
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Progress</h3>
+                            <div class="space-y-3" id="lessonList">
+                                <!-- Lesson list will be populated here -->
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Quick Stats</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span>Accuracy:</span>
+                                    <span id="accuracy" class="font-semibold">0%</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Time Spent:</span>
+                                    <span id="timeSpent" class="font-semibold">0 min</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Simulator -->
+            <div id="simulatorView" class="hidden">
+                <div class="mb-6">
+                    <button onclick="backToDashboard()" class="text-blue-600 hover:text-blue-800 mb-4">← Back to Dashboard</button>
+                    <h2 class="text-3xl font-bold mb-2">Interactive Normal Curve Simulator</h2>
+                    <p class="text-gray-600">Manipulate parameters to see real-time changes in the normal distribution</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <canvas id="normalCurveChart" width="600" height="400"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Parameters</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Mean (μ)</label>
+                                    <input type="range" id="meanSlider" min="-5" max="5" step="0.1" value="0" 
+                                           class="w-full" onchange="updateNormalCurve()">
+                                    <span id="meanValue" class="text-sm text-gray-600">0</span>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Standard Deviation (σ)</label>
+                                    <input type="range" id="stdSlider" min="0.1" max="3" step="0.1" value="1" 
+                                           class="w-full" onchange="updateNormalCurve()">
+                                    <span id="stdValue" class="text-sm text-gray-600">1</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Statistics</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span>Area under curve:</span>
+                                    <span class="font-semibold">1.00</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>68% within:</span>
+                                    <span id="oneStd" class="font-semibold">±1σ</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>95% within:</span>
+                                    <span id="twoStd" class="font-semibold">±2σ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Challenge View -->
+            <div id="challengeView" class="hidden">
+                <div class="mb-6">
+                    <button onclick="backToDashboard()" class="text-blue-600 hover:text-blue-800 mb-4">← Back to Dashboard</button>
+                    <h2 class="text-3xl font-bold mb-2">Daily Challenge</h2>
+                    <p class="text-gray-600">Test your statistical knowledge!</p>
+                </div>
+
+                <div class="max-w-4xl mx-auto">
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <div id="challengeContent">
+                            <!-- Challenge content will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role Playing Game View -->
+            <div id="rpgView" class="hidden">
+                <div class="mb-6">
+                    <button onclick="backToDashboard()" class="text-blue-600 hover:text-blue-800 mb-4">← Back to Dashboard</button>
+                    <h2 class="text-3xl font-bold mb-2">Statistical Role-Playing Adventure</h2>
+                    <p class="text-gray-600">Choose your role and navigate statistical scenarios!</p>
+                </div>
+
+                <div class="max-w-4xl mx-auto">
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <div id="rpgContent">
+                            <!-- RPG content will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 max-w-md mx-4 text-center">
+            <div class="text-6xl mb-4">🎉</div>
+            <h3 class="text-2xl font-bold mb-2">Congratulations!</h3>
+            <p id="successMessage" class="text-gray-600 mb-4"></p>
+            <div class="flex items-center justify-center mb-4">
+                <span class="text-2xl">🪙</span>
+                <span id="tokensEarned" class="text-xl font-bold ml-2">+10 Tokens</span>
+            </div>
+            <button onclick="closeSuccessModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                Continue
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Global state management
+        let currentUser = null;
+        let userProgress = {};
+        let currentPath = null;
+        let currentLesson = 0;
+        let normalCurveChart = null;
+        let challengeAttempts = 0;
+        let gameState = {
+            tokens: 0,
+            completedLessons: 0,
+            currentStreak: 0,
+            totalScore: 0,
+            accuracy: 0,
+            timeSpent: 0
+        };
+
+        // Learning paths data structure
+        const learningPaths = {
+            basics: {
+                title: "Statistics Basics",
+                description: "Master the fundamental concepts of central tendency",
+                lessons: [
+                    {
+                        title: "Introduction to Statistics",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">What is Statistics?</h3>
+                            <p class="mb-4">Statistics is the science of collecting, analyzing, and interpreting data to make informed decisions.</p>
+                            <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Key Concepts:</h4>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Population vs Sample</li>
+                                    <li>Data Types (Quantitative vs Qualitative)</li>
+                                    <li>Descriptive vs Inferential Statistics</li>
+                                </ul>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "Which of the following is an example of quantitative data?",
+                            options: ["Hair color", "Height in centimeters", "Favorite movie", "Gender"],
+                            correct: 1,
+                            explanation: "Height in centimeters is quantitative because it represents numerical measurements."
+                        }
+                    },
+                    {
+                        title: "Understanding the Mean",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">The Arithmetic Mean</h3>
+                            <p class="mb-4">The mean is the average of all values in a dataset.</p>
+                            <div class="bg-green-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Formula:</h4>
+                                <p class="text-lg">Mean = (Sum of all values) ÷ (Number of values)</p>
+                                <p class="text-lg">μ = Σx / n</p>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Example:</h4>
+                                <p>Test scores: 85, 90, 78, 92, 88</p>
+                                <p>Mean = (85 + 90 + 78 + 92 + 88) ÷ 5 = 433 ÷ 5 = 86.6</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "Calculate the mean of: 12, 15, 18, 20, 25",
+                            options: ["17", "18", "19", "20"],
+                            correct: 1,
+                            explanation: "Mean = (12 + 15 + 18 + 20 + 25) ÷ 5 = 90 ÷ 5 = 18"
+                        }
+                    },
+                    {
+                        title: "Finding the Median",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">The Median</h3>
+                            <p class="mb-4">The median is the middle value when data is arranged in order.</p>
+                            <div class="bg-purple-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Steps to find median:</h4>
+                                <ol class="list-decimal list-inside space-y-1">
+                                    <li>Arrange data in ascending order</li>
+                                    <li>If odd number of values: middle value</li>
+                                    <li>If even number of values: average of two middle values</li>
+                                </ol>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Example:</h4>
+                                <p>Data: 3, 7, 8, 12, 15</p>
+                                <p>Median = 8 (middle value)</p>
+                                <p>Data: 3, 7, 8, 12</p>
+                                <p>Median = (7 + 8) ÷ 2 = 7.5</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "What is the median of: 4, 7, 9, 12, 15, 18?",
+                            options: ["9", "10.5", "11", "12"],
+                            correct: 1,
+                            explanation: "With 6 values, median = (9 + 12) ÷ 2 = 10.5"
+                        }
+                    },
+                    {
+                        title: "Identifying the Mode",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">The Mode</h3>
+                            <p class="mb-4">The mode is the value that appears most frequently in a dataset.</p>
+                            <div class="bg-red-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Types of Mode:</h4>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Unimodal: One mode</li>
+                                    <li>Bimodal: Two modes</li>
+                                    <li>Multimodal: More than two modes</li>
+                                    <li>No mode: All values appear equally</li>
+                                </ul>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Example:</h4>
+                                <p>Data: 2, 3, 3, 5, 5, 5, 7</p>
+                                <p>Mode = 5 (appears 3 times)</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "What is the mode of: 1, 2, 2, 3, 4, 4, 4, 5?",
+                            options: ["2", "3", "4", "No mode"],
+                            correct: 2,
+                            explanation: "4 appears most frequently (3 times)"
+                        }
+                    },
+                    {
+                        title: "Understanding Range",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">The Range</h3>
+                            <p class="mb-4">Range measures the spread of data by finding the difference between the highest and lowest values.</p>
+                            <div class="bg-indigo-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Formula:</h4>
+                                <p class="text-lg">Range = Maximum value - Minimum value</p>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Example:</h4>
+                                <p>Test scores: 65, 78, 82, 90, 95</p>
+                                <p>Range = 95 - 65 = 30</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "What is the range of: 12, 18, 25, 31, 44?",
+                            options: ["32", "31", "30", "29"],
+                            correct: 0,
+                            explanation: "Range = 44 - 12 = 32"
+                        }
+                    }
+                ]
+            },
+            dispersion: {
+                title: "Dispersion Measures",
+                description: "Learn about variance and standard deviation",
+                lessons: [
+                    {
+                        title: "Introduction to Dispersion",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">What is Dispersion?</h3>
+                            <p class="mb-4">Dispersion measures how spread out data points are from the center.</p>
+                            <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Why Dispersion Matters:</h4>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Two datasets can have the same mean but different spreads</li>
+                                    <li>Helps understand data reliability</li>
+                                    <li>Important for risk assessment</li>
+                                </ul>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "Which dataset has more dispersion? A: [10, 10, 10] B: [5, 10, 15]",
+                            options: ["Dataset A", "Dataset B", "Same dispersion", "Cannot determine"],
+                            correct: 1,
+                            explanation: "Dataset B has more spread around the mean (10)"
+                        }
+                    },
+                    {
+                        title: "Understanding Variance",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Variance</h3>
+                            <p class="mb-4">Variance measures the average squared deviation from the mean.</p>
+                            <div class="bg-green-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Population Variance Formula:</h4>
+                                <p class="text-lg">σ² = Σ(x - μ)² / N</p>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Sample Variance Formula:</h4>
+                                <p class="text-lg">s² = Σ(x - x̄)² / (n - 1)</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "If deviations from mean are: -2, 0, 2, what is the variance?",
+                            options: ["2.67", "4", "8", "0"],
+                            correct: 0,
+                            explanation: "Variance = ((-2)² + 0² + 2²) / 3 = 8/3 = 2.67"
+                        }
+                    },
+                    {
+                        title: "Standard Deviation",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Standard Deviation</h3>
+                            <p class="mb-4">Standard deviation is the square root of variance, expressed in the same units as the original data.</p>
+                            <div class="bg-red-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Formula:</h4>
+                                <p class="text-lg">σ = √(σ²)</p>
+                                <p class="text-lg">s = √(s²)</p>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Interpretation:</h4>
+                                <p>• Low standard deviation = data close to mean</p>
+                                <p>• High standard deviation = data spread out</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "If variance is 16, what is the standard deviation?",
+                            options: ["4", "8", "16", "256"],
+                            correct: 0,
+                            explanation: "Standard deviation = √16 = 4"
+                        }
+                    },
+                    {
+                        title: "Practical Applications",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Real-World Applications</h3>
+                            <p class="mb-4">Variance and standard deviation are used in many fields:</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold mb-2">Finance</h4>
+                                    <p>Risk assessment and portfolio management</p>
+                                </div>
+                                <div class="bg-green-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold mb-2">Quality Control</h4>
+                                    <p>Manufacturing consistency</p>
+                                </div>
+                                <div class="bg-purple-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold mb-2">Education</h4>
+                                    <p>Test score analysis</p>
+                                </div>
+                                <div class="bg-red-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold mb-2">Weather</h4>
+                                    <p>Climate variability</p>
+                                </div>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "A company wants consistent product weights. Which is better: σ = 0.1g or σ = 0.5g?",
+                            options: ["σ = 0.1g", "σ = 0.5g", "Both equal", "Cannot determine"],
+                            correct: 0,
+                            explanation: "Lower standard deviation (0.1g) means more consistent weights"
+                        }
+                    }
+                ]
+            },
+            probability: {
+                title: "Probability Theory",
+                description: "Explore chance, likelihood, and probability distributions",
+                lessons: [
+                    {
+                        title: "Basic Probability Concepts",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Introduction to Probability</h3>
+                            <p class="mb-4">Probability measures the likelihood of an event occurring.</p>
+                            <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Key Terms:</h4>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Experiment: A process with uncertain outcomes</li>
+                                    <li>Sample Space: All possible outcomes</li>
+                                    <li>Event: A subset of the sample space</li>
+                                </ul>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Probability Scale:</h4>
+                                <p>0 ≤ P(Event) ≤ 1</p>
+                                <p>• 0 = Impossible</p>
+                                <p>• 1 = Certain</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "What is the probability of rolling a 6 on a fair die?",
+                            options: ["1/6", "1/5", "1/4", "1/3"],
+                            correct: 0,
+                            explanation: "There's 1 favorable outcome out of 6 possible outcomes"
+                        }
+                    },
+                    {
+                        title: "Probability Rules",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Fundamental Probability Rules</h3>
+                            <div class="space-y-4">
+                                <div class="bg-red-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold mb-2">Addition Rule:</h4>
+                                    <p>P(A or B) = P(A) + P(B) - P(A and B)</p>
+                                </div>
+                                <div class="bg-purple-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold mb-2">Multiplication Rule:</h4>
+                                    <p>P(A and B) = P(A) × P(B|A)</p>
+                                </div>
+                                <div class="bg-yellow-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold mb-2">Complement Rule:</h4>
+                                    <p>P(not A) = 1 - P(A)</p>
+                                </div>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "If P(Rain) = 0.3, what is P(No Rain)?",
+                            options: ["0.7", "0.3", "1.3", "Cannot determine"],
+                            correct: 0,
+                            explanation: "P(No Rain) = 1 - P(Rain) = 1 - 0.3 = 0.7"
+                        }
+                    },
+                    {
+                        title: "Conditional Probability",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Conditional Probability</h3>
+                            <p class="mb-4">The probability of an event given that another event has occurred.</p>
+                            <div class="bg-indigo-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Formula:</h4>
+                                <p class="text-lg">P(A|B) = P(A and B) / P(B)</p>
+                                <p class="text-sm">Read as: "Probability of A given B"</p>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Example:</h4>
+                                <p>Drawing cards without replacement:</p>
+                                <p>P(2nd card is Ace | 1st card is Ace) = 3/51</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "In a class, 60% are girls, 40% of girls wear glasses. What's P(glasses|girl)?",
+                            options: ["0.4", "0.6", "0.24", "Cannot determine"],
+                            correct: 0,
+                            explanation: "P(glasses|girl) = 40% = 0.4 (given directly)"
+                        }
+                    },
+                    {
+                        title: "Independent Events",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Independent Events</h3>
+                            <p class="mb-4">Events are independent if the occurrence of one doesn't affect the other.</p>
+                            <div class="bg-green-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Test for Independence:</h4>
+                                <p>Events A and B are independent if:</p>
+                                <p class="text-lg">P(A|B) = P(A)</p>
+                                <p>or</p>
+                                <p class="text-lg">P(A and B) = P(A) × P(B)</p>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Examples:</h4>
+                                <p>• Coin flips</p>
+                                <p>• Rolling dice</p>
+                                <p>• Drawing with replacement</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "Are two coin flips independent?",
+                            options: ["Yes", "No", "Sometimes", "Depends on the coin"],
+                            correct: 0,
+                            explanation: "Each coin flip doesn't affect the outcome of the next flip"
+                        }
+                    },
+                    {
+                        title: "Probability Distributions",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Probability Distributions</h3>
+                            <p class="mb-4">A function that describes the likelihood of different outcomes.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold mb-2">Discrete</h4>
+                                    <p>Countable outcomes</p>
+                                    <p>Example: Number of heads in coin flips</p>
+                                </div>
+                                <div class="bg-purple-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold mb-2">Continuous</h4>
+                                    <p>Infinite possible values</p>
+                                    <p>Example: Height, weight, time</p>
+                                </div>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Normal Distribution:</h4>
+                                <p>Bell-shaped curve, symmetric around the mean</p>
+                                <p>68-95-99.7 rule for standard deviations</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "In a normal distribution, what percentage of data falls within 1 standard deviation?",
+                            options: ["68%", "95%", "99.7%", "50%"],
+                            correct: 0,
+                            explanation: "The 68-95-99.7 rule: 68% within 1σ, 95% within 2σ, 99.7% within 3σ"
+                        }
+                    },
+                    {
+                        title: "Bayes' Theorem",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Bayes' Theorem</h3>
+                            <p class="mb-4">A way to update probabilities based on new evidence.</p>
+                            <div class="bg-red-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Formula:</h4>
+                                <p class="text-lg">P(A|B) = P(B|A) × P(A) / P(B)</p>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Medical Example:</h4>
+                                <p>Disease prevalence: 1%</p>
+                                <p>Test accuracy: 95%</p>
+                                <p>False positive rate: 5%</p>
+                                <p>If test is positive, what's P(disease)?</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "Bayes' theorem is used to:",
+                            options: ["Update probabilities", "Calculate means", "Find variance", "Determine independence"],
+                            correct: 0,
+                            explanation: "Bayes' theorem updates prior probabilities with new evidence"
+                        }
+                    }
+                ]
+            },
+            correlation: {
+                title: "Correlation Analysis",
+                description: "Understand relationships between variables",
+                lessons: [
+                    {
+                        title: "Introduction to Correlation",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">What is Correlation?</h3>
+                            <p class="mb-4">Correlation measures the strength and direction of a linear relationship between two variables.</p>
+                            <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Types of Correlation:</h4>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Positive: As one increases, the other increases</li>
+                                    <li>Negative: As one increases, the other decreases</li>
+                                    <li>Zero: No linear relationship</li>
+                                </ul>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "Height and weight typically show what type of correlation?",
+                            options: ["Positive", "Negative", "Zero", "Cannot determine"],
+                            correct: 0,
+                            explanation: "Generally, taller people tend to weigh more (positive correlation)"
+                        }
+                    },
+                    {
+                        title: "Correlation Coefficient",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Pearson Correlation Coefficient (r)</h3>
+                            <p class="mb-4">Measures linear correlation strength between -1 and +1.</p>
+                            <div class="bg-green-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Interpretation:</h4>
+                                <p>• r = +1: Perfect positive correlation</p>
+                                <p>• r = 0: No linear correlation</p>
+                                <p>• r = -1: Perfect negative correlation</p>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Strength Guidelines:</h4>
+                                <p>• |r| > 0.7: Strong</p>
+                                <p>• 0.3 < |r| < 0.7: Moderate</p>
+                                <p>• |r| < 0.3: Weak</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "If r = -0.85, the correlation is:",
+                            options: ["Strong positive", "Strong negative", "Weak positive", "Weak negative"],
+                            correct: 1,
+                            explanation: "r = -0.85 indicates strong negative correlation (|r| > 0.7 and negative)"
+                        }
+                    },
+                    {
+                        title: "Correlation vs Causation",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Correlation Does Not Imply Causation</h3>
+                            <p class="mb-4">Just because two variables are correlated doesn't mean one causes the other.</p>
+                            <div class="bg-red-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Possible Explanations:</h4>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>A causes B</li>
+                                    <li>B causes A</li>
+                                    <li>Third variable causes both</li>
+                                    <li>Pure coincidence</li>
+                                </ul>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Famous Example:</h4>
+                                <p>Ice cream sales and drowning deaths are correlated</p>
+                                <p>Cause: Hot weather increases both!</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "High correlation between shoe size and reading ability in children is likely due to:",
+                            options: ["Shoe size affects reading", "Reading affects shoe size", "Age affects both", "Pure coincidence"],
+                            correct: 2,
+                            explanation: "Age is a confounding variable - older children have larger feet and better reading skills"
+                        }
+                    },
+                    {
+                        title: "Scatter Plots and Correlation",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Visualizing Correlation</h3>
+                            <p class="mb-4">Scatter plots help visualize the relationship between two variables.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold mb-2">Strong Positive</h4>
+                                    <p>Points form tight upward line</p>
+                                </div>
+                                <div class="bg-red-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold mb-2">Strong Negative</h4>
+                                    <p>Points form tight downward line</p>
+                                </div>
+                                <div class="bg-green-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold mb-2">Weak Correlation</h4>
+                                    <p>Points scattered widely</p>
+                                </div>
+                                <div class="bg-purple-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold mb-2">No Correlation</h4>
+                                    <p>Random scatter pattern</p>
+                                </div>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "In a scatter plot, what indicates strong correlation?",
+                            options: ["Points close to a line", "Points scattered randomly", "Few data points", "Curved pattern"],
+                            correct: 0,
+                            explanation: "Strong correlation shows points clustered tightly around a straight line"
+                        }
+                    }
+                ]
+            },
+            regression: {
+                title: "Regression Analysis",
+                description: "Learn prediction and modeling techniques",
+                lessons: [
+                    {
+                        title: "Introduction to Regression",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">What is Regression?</h3>
+                            <p class="mb-4">Regression analysis predicts one variable based on another variable.</p>
+                            <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Key Terms:</h4>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Independent variable (x): Predictor</li>
+                                    <li>Dependent variable (y): Response</li>
+                                    <li>Regression line: Best fit line</li>
+                                </ul>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "In predicting house price from size, which is the independent variable?",
+                            options: ["House price", "House size", "Both", "Neither"],
+                            correct: 1,
+                            explanation: "House size is used to predict price, making it the independent variable"
+                        }
+                    },
+                    {
+                        title: "Linear Regression Equation",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">The Regression Equation</h3>
+                            <p class="mb-4">Linear regression finds the best straight line through data points.</p>
+                            <div class="bg-green-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Equation:</h4>
+                                <p class="text-lg">y = a + bx</p>
+                                <p>• y: predicted value</p>
+                                <p>• a: y-intercept</p>
+                                <p>• b: slope</p>
+                                <p>• x: independent variable</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "In y = 5 + 2x, what happens to y when x increases by 1?",
+                            options: ["Increases by 1", "Increases by 2", "Increases by 5", "Decreases by 2"],
+                            correct: 1,
+                            explanation: "The slope (2) tells us y increases by 2 for each unit increase in x"
+                        }
+                    },
+                    {
+                        title: "Least Squares Method",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Finding the Best Fit Line</h3>
+                            <p class="mb-4">The least squares method minimizes the sum of squared residuals.</p>
+                            <div class="bg-purple-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Residual:</h4>
+                                <p>Difference between actual and predicted values</p>
+                                <p>Residual = Actual y - Predicted y</p>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Goal:</h4>
+                                <p>Minimize Σ(residual)²</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "What does the least squares method minimize?",
+                            options: ["Sum of residuals", "Sum of squared residuals", "Number of points", "Correlation coefficient"],
+                            correct: 1,
+                            explanation: "Least squares minimizes the sum of squared residuals to find the best fit line"
+                        }
+                    },
+                    {
+                        title: "R-squared and Model Fit",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Measuring Model Quality</h3>
+                            <p class="mb-4">R-squared (R²) measures how well the regression line fits the data.</p>
+                            <div class="bg-red-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">R-squared Interpretation:</h4>
+                                <p>• R² = 0: Model explains 0% of variance</p>
+                                <p>• R² = 1: Model explains 100% of variance</p>
+                                <p>• Higher R² = Better fit</p>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Example:</h4>
+                                <p>R² = 0.85 means the model explains 85% of the variation in y</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "If R² = 0.64, what percentage of variance is explained?",
+                            options: ["64%", "36%", "0.64%", "Cannot determine"],
+                            correct: 0,
+                            explanation: "R² = 0.64 means 64% of the variance is explained by the model"
+                        }
+                    },
+                    {
+                        title: "Making Predictions",
+                        content: `
+                            <h3 class="text-2xl font-bold mb-4">Using Regression for Prediction</h3>
+                            <p class="mb-4">Once we have a regression equation, we can predict y values for new x values.</p>
+                            <div class="bg-green-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Prediction Steps:</h4>
+                                <ol class="list-decimal list-inside space-y-1">
+                                    <li>Identify the regression equation</li>
+                                    <li>Substitute the x value</li>
+                                    <li>Calculate the predicted y</li>
+                                    <li>Consider prediction intervals</li>
+                                </ol>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+                                <h4 class="font-semibold mb-2">Caution:</h4>
+                                <p>Extrapolation (predicting outside the data range) can be unreliable</p>
+                            </div>
+                        `,
+                        exercise: {
+                            question: "Using y = 10 + 3x, what is the predicted y when x = 5?",
+                            options: ["25", "23", "15", "35"],
+                            correct: 0,
+                            explanation: "y = 10 + 3(5) = 10 + 15 = 25"
+                        }
+                    }
+                ]
+            }
+        };
+
+        // Challenge questions database
+        const challenges = [
+            {
+                question: "A factory produces light bulbs with a mean lifespan of 1000 hours and standard deviation of 100 hours. What percentage of bulbs last between 900 and 1100 hours?",
+                options: ["68%", "95%", "99.7%", "50%"],
+                correct: 0,
+                explanation: "This range is within 1 standard deviation (μ ± σ), which contains 68% of data in a normal distribution.",
+                scenario: "You're a quality control manager at a light bulb factory."
+            },
+            {
+                question: "In a survey of 1000 people, 600 prefer coffee over tea. What is the probability that a randomly selected person prefers coffee?",
+                options: ["0.4", "0.6", "0.8", "1.0"],
+                correct: 1,
+                explanation: "Probability = favorable outcomes / total outcomes = 600/1000 = 0.6",
+                scenario: "You're conducting market research for a beverage company."
+            },
+            {
+                question: "The correlation coefficient between study hours and test scores is 0.75. This indicates:",
+                options: ["Weak positive correlation", "Strong positive correlation", "Weak negative correlation", "No correlation"],
+                correct: 1,
+                explanation: "r = 0.75 indicates strong positive correlation (|r| > 0.7 and positive)",
+                scenario: "You're analyzing student performance data as an education researcher."
+            }
+        ];
+
+        // RPG scenarios
+        const rpgScenarios = {
+            observer: {
+                title: "Statistical Observer",
+                description: "You're a data analyst investigating patterns in city traffic.",
+                scenario: "The city council wants to understand traffic patterns to optimize signal timing. You have data from 100 intersections over a month.",
+                challenge: "Calculate the mean number of cars per hour: 45, 52, 38, 61, 49, 55, 43, 58, 46, 50",
+                options: ["49.7", "50.2", "48.5", "51.0"],
+                correct: 0,
+                explanation: "Mean = (45+52+38+61+49+55+43+58+46+50) ÷ 10 = 497 ÷ 10 = 49.7"
+            },
+            producer: {
+                title: "Production Manager",
+                description: "You manage a smartphone factory and need to ensure quality control.",
+                scenario: "Your production line makes 10,000 phones daily. Recent quality tests show 2% defect rate with standard deviation of 0.5%.",
+                challenge: "If the defect rate follows a normal distribution, what's the probability of having less than 1% defects on any given day?",
+                options: ["16%", "32%", "68%", "84%"],
+                correct: 0,
+                explanation: "1% is 2 standard deviations below the mean (2% - 2×0.5%). In normal distribution, ~16% of data falls below μ-2σ."
+            },
+            government: {
+                title: "Policy Analyst",
+                description: "You work for the government analyzing economic indicators.",
+                scenario: "Unemployment data shows: Jan: 5.2%, Feb: 5.0%, Mar: 4.8%, Apr: 5.1%, May: 4.9%. The public is concerned about job market stability.",
+                challenge: "What is the standard deviation of these unemployment rates?",
+                options: ["0.15%", "0.18%", "0.12%", "0.21%"],
+                correct: 0,
+                explanation: "Calculate variance of deviations from mean (5.0%), then take square root to get standard deviation ≈ 0.15%"
+            }
+        };
+
+        // User management functions
+        function showSignup() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('signupForm').classList.remove('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('signupForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
+
+        function signup() {
+            const username = document.getElementById('newUsername').value.trim();
+            const password = document.getElementById('newPassword').value.trim();
+
+            if (!username || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            if (password.length !== 4 || !/^\d{4}$/.test(password)) {
+                alert('Password must be exactly 4 digits');
+                return;
+            }
+
+            // Check if user already exists
+            const existingUser = localStorage.getItem(`statisticade_user_${username}`);
+            if (existingUser) {
+                alert('Username already exists. Please choose a different one.');
+                return;
+            }
+
+            // Create new user
+            const userData = {
+                username: username,
+                password: password,
+                progress: {},
+                tokens: 0,
+                completedLessons: 0,
+                currentStreak: 0,
+                totalScore: 0,
+                accuracy: 0,
+                timeSpent: 0,
+                lastLogin: new Date().toISOString()
+            };
+
+            localStorage.setItem(`statisticade_user_${username}`, JSON.stringify(userData));
+            alert('Account created successfully! Please login.');
+            showLogin();
+        }
+
+        function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!username || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const userData = localStorage.getItem(`statisticade_user_${username}`);
+            if (!userData) {
+                alert('User not found. Please sign up first.');
+                return;
+            }
+
+            const user = JSON.parse(userData);
+            if (user.password !== password) {
+                alert('Incorrect password');
+                return;
+            }
+
+            // Login successful
+            currentUser = username;
+            userProgress = user.progress || {};
+            gameState = {
+                tokens: user.tokens || 0,
+                completedLessons: user.completedLessons || 0,
+                currentStreak: user.currentStreak || 0,
+                totalScore: user.totalScore || 0,
+                accuracy: user.accuracy || 0,
+                timeSpent: user.timeSpent || 0
+            };
+
+            // Update last login
+            user.lastLogin = new Date().toISOString();
+            localStorage.setItem(`statisticade_user_${username}`, JSON.stringify(user));
+
+            showDashboard();
+        }
+
+        function logout() {
+            saveUserProgress();
+            currentUser = null;
+            userProgress = {};
+            gameState = {
+                tokens: 0,
+                completedLessons: 0,
+                currentStreak: 0,
+                totalScore: 0,
+                accuracy: 0,
+                timeSpent: 0
+            };
+            
+            document.getElementById('mainDashboard').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            
+            // Clear form fields
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        function saveUserProgress() {
+            if (!currentUser) return;
+
+            const userData = JSON.parse(localStorage.getItem(`statisticade_user_${currentUser}`) || '{}');
+            userData.progress = userProgress;
+            userData.tokens = gameState.tokens;
+            userData.completedLessons = gameState.completedLessons;
+            userData.currentStreak = gameState.currentStreak;
+            userData.totalScore = gameState.totalScore;
+            userData.accuracy = gameState.accuracy;
+            userData.timeSpent = gameState.timeSpent;
+            userData.lastSave = new Date().toISOString();
+
+            localStorage.setItem(`statisticade_user_${currentUser}`, JSON.stringify(userData));
+        }
+
+        function showDashboard() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+            document.getElementById('currentUser').textContent = currentUser;
+            
+            updateDashboardStats();
+            updateProgressBars();
+            
+            // Show dashboard view
+            showView('dashboardView');
+        }
+
+        function updateDashboardStats() {
+            document.getElementById('tokenCount').textContent = gameState.tokens;
+            document.getElementById('completedLessons').textContent = gameState.completedLessons;
+            document.getElementById('currentStreak').textContent = gameState.currentStreak;
+            document.getElementById('totalScore').textContent = gameState.totalScore;
+        }
+
+        function updateProgressBars() {
+            Object.keys(learningPaths).forEach(pathKey => {
+                const pathProgress = userProgress[pathKey] || {};
+                const totalLessons = learningPaths[pathKey].lessons.length;
+                const completedLessons = Object.keys(pathProgress).filter(key => pathProgress[key].completed).length;
+                const percentage = (completedLessons / totalLessons) * 100;
+                
+                const progressBar = document.getElementById(`${pathKey}Progress`);
+                if (progressBar) {
+                    progressBar.style.width = `${percentage}%`;
+                }
+            });
+        }
+
+        function showView(viewId) {
+            // Hide all views
+            const views = ['dashboardView', 'learningPathView', 'simulatorView', 'challengeView', 'rpgView'];
+            views.forEach(view => {
+                document.getElementById(view).classList.add('hidden');
+            });
+            
+            // Show selected view
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        function backToDashboard() {
+            showView('dashboardView');
+            saveUserProgress();
+        }
+
+        // Learning path functions
+        function openLearningPath(pathKey) {
+            currentPath = pathKey;
+            currentLesson = 0;
+            
+            const path = learningPaths[pathKey];
+            document.getElementById('pathTitle').textContent = path.title;
+            document.getElementById('pathDescription').textContent = path.description;
+            
+            showView('learningPathView');
+            loadLessonList();
+            loadLesson(0);
+        }
+
+        function loadLessonList() {
+            const lessonList = document.getElementById('lessonList');
+            const path = learningPaths[currentPath];
+            const pathProgress = userProgress[currentPath] || {};
+            
+            lessonList.innerHTML = '';
+            
+            path.lessons.forEach((lesson, index) => {
+                const isCompleted = pathProgress[index]?.completed || false;
+                const isUnlocked = index === 0 || (pathProgress[index - 1]?.completed || false);
+                
+                const lessonItem = document.createElement('div');
+                lessonItem.className = `flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+                    isCompleted ? 'bg-green-100 text-green-800' : 
+                    isUnlocked ? 'bg-blue-50 hover:bg-blue-100' : 'bg-gray-100 text-gray-400'
+                }`;
+                
+                if (isUnlocked) {
+                    lessonItem.onclick = () => loadLesson(index);
+                }
+                
+                lessonItem.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="mr-2">${isCompleted ? '✅' : isUnlocked ? '📖' : '🔒'}</span>
+                        <span class="text-sm font-medium">${lesson.title}</span>
+                    </div>
+                    ${isCompleted ? '<span class="text-xs">Complete</span>' : ''}
+                `;
+                
+                lessonList.appendChild(lessonItem);
+            });
+        }
+
+        function loadLesson(lessonIndex) {
+            currentLesson = lessonIndex;
+            const path = learningPaths[currentPath];
+            const lesson = path.lessons[lessonIndex];
+            const pathProgress = userProgress[currentPath] || {};
+            const isCompleted = pathProgress[lessonIndex]?.completed || false;
+            
+            const lessonContent = document.getElementById('lessonContent');
+            lessonContent.innerHTML = `
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold mb-4">${lesson.title}</h2>
+                    <div class="prose max-w-none">
+                        ${lesson.content}
+                    </div>
+                </div>
+                
+                <div class="border-t pt-6">
+                    <h3 class="text-xl font-semibold mb-4">📝 Practice Exercise</h3>
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <p class="mb-4 font-medium">${lesson.exercise.question}</p>
+                        <div class="space-y-2 mb-4">
+                            ${lesson.exercise.options.map((option, index) => `
+                                <label class="flex items-center p-3 bg-white rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
+                                    <input type="radio" name="answer" value="${index}" class="mr-3">
+                                    <span>${option}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                        <button onclick="checkAnswer()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Submit Answer
+                        </button>
+                        <div id="exerciseResult" class="mt-4 hidden"></div>
+                    </div>
+                </div>
+                
+                ${isCompleted ? `
+                    <div class="mt-6 p-4 bg-green-50 rounded-lg">
+                        <div class="flex items-center">
+                            <span class="text-2xl mr-2">✅</span>
+                            <span class="text-green-800 font-semibold">Lesson Completed!</span>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function checkAnswer() {
+            const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+            if (!selectedAnswer) {
+                alert('Please select an answer');
+                return;
+            }
+            
+            const answerIndex = parseInt(selectedAnswer.value);
+            const lesson = learningPaths[currentPath].lessons[currentLesson];
+            const isCorrect = answerIndex === lesson.exercise.correct;
+            
+            const resultDiv = document.getElementById('exerciseResult');
+            resultDiv.classList.remove('hidden');
+            
+            if (isCorrect) {
+                resultDiv.innerHTML = `
+                    <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <span class="text-2xl mr-2">🎉</span>
+                            <span class="text-green-800 font-semibold">Correct!</span>
+                        </div>
+                        <p class="text-green-700">${lesson.exercise.explanation}</p>
+                    </div>
+                `;
+                
+                // Mark lesson as completed and award tokens
+                if (!userProgress[currentPath]) {
+                    userProgress[currentPath] = {};
+                }
+                
+                if (!userProgress[currentPath][currentLesson]?.completed) {
+                    userProgress[currentPath][currentLesson] = { completed: true };
+                    gameState.completedLessons++;
+                    gameState.tokens += 10;
+                    gameState.totalScore += 100;
+                    
+                    // Show success modal
+                    showSuccessModal("Lesson completed!", 10);
+                    
+                    // Update displays
+                    updateDashboardStats();
+                    loadLessonList();
+                    
+                    // Auto-advance to next lesson after delay
+                    setTimeout(() => {
+                        if (currentLesson < learningPaths[currentPath].lessons.length - 1) {
+                            loadLesson(currentLesson + 1);
+                        }
+                    }, 2000);
+                }
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <span class="text-2xl mr-2">❌</span>
+                            <span class="text-red-800 font-semibold">Incorrect</span>
+                        </div>
+                        <p class="text-red-700 mb-2">The correct answer is: <strong>${lesson.exercise.options[lesson.exercise.correct]}</strong></p>
+                        <p class="text-red-700">${lesson.exercise.explanation}</p>
+                    </div>
+                `;
+                
+                // Deduct tokens after 5 attempts (as per requirements)
+                challengeAttempts++;
+                if (challengeAttempts > 5 && gameState.tokens > 0) {
+                    gameState.tokens = Math.max(0, gameState.tokens - 2);
+                    updateDashboardStats();
+                }
+            }
+            
+            saveUserProgress();
+        }
+
+        // Interactive simulator functions
+        function openInteractiveSimulator() {
+            showView('simulatorView');
+            initializeNormalCurveChart();
+        }
+
+        function initializeNormalCurveChart() {
+            const ctx = document.getElementById('normalCurveChart').getContext('2d');
+            
+            // Generate normal curve data
+            const generateNormalCurve = (mean, std) => {
+                const data = [];
+                for (let x = -8; x <= 8; x += 0.1) {
+                    const y = (1 / (std * Math.sqrt(2 * Math.PI))) * 
+                             Math.exp(-0.5 * Math.pow((x - mean) / std, 2));
+                    data.push({ x: x, y: y });
+                }
+                return data;
+            };
+            
+            normalCurveChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Normal Distribution',
+                        data: generateNormalCurve(0, 1),
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'Standard Deviations from Mean'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Probability Density'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Interactive Normal Distribution'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            // Add interactivity for clicking on curve sections
+                            const dataIndex = elements[0].index;
+                            console.log('Clicked on curve at index:', dataIndex);
+                        }
+                    }
+                }
+            });
+            
+            updateNormalCurve();
+        }
+
+        function updateNormalCurve() {
+            if (!normalCurveChart) return;
+            
+            const mean = parseFloat(document.getElementById('meanSlider').value);
+            const std = parseFloat(document.getElementById('stdSlider').value);
+            
+            // Update display values
+            document.getElementById('meanValue').textContent = mean.toFixed(1);
+            document.getElementById('stdValue').textContent = std.toFixed(1);
+            
+            // Update statistics
+            document.getElementById('oneStd').textContent = `±${std.toFixed(1)}σ`;
+            document.getElementById('twoStd').textContent = `±${(2 * std).toFixed(1)}σ`;
+            
+            // Generate new curve data
+            const data = [];
+            for (let x = -8; x <= 8; x += 0.1) {
+                const y = (1 / (std * Math.sqrt(2 * Math.PI))) * 
+                         Math.exp(-0.5 * Math.pow((x - mean) / std, 2));
+                data.push({ x: x, y: y });
+            }
+            
+            normalCurveChart.data.datasets[0].data = data;
+            normalCurveChart.update('none');
+        }
+
+        // Challenge functions
+        function startDailyChallenge() {
+            showView('challengeView');
+            loadRandomChallenge();
+        }
+
+        function loadRandomChallenge() {
+            const challenge = challenges[Math.floor(Math.random() * challenges.length)];
+            
+            document.getElementById('challengeContent').innerHTML = `
+                <div class="mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                        <h3 class="font-semibold text-blue-800 mb-2">📋 Scenario</h3>
+                        <p class="text-blue-700">${challenge.scenario}</p>
+                    </div>
+                    
+                    <h3 class="text-xl font-semibold mb-4">Challenge Question</h3>
+                    <p class="mb-6 text-lg">${challenge.question}</p>
+                    
+                    <div class="space-y-3 mb-6">
+                        ${challenge.options.map((option, index) => `
+                            <label class="flex items-center p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
+                                <input type="radio" name="challengeAnswer" value="${index}" class="mr-3">
+                                <span class="text-lg">${option}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                    
+                    <button onclick="checkChallengeAnswer(${challenge.correct}, '${challenge.explanation}')" 
+                            class="bg-orange-600 text-white px-8 py-3 rounded-lg hover:bg-orange-700 transition-colors text-lg font-semibold">
+                        Submit Challenge
+                    </button>
+                    
+                    <div id="challengeResult" class="mt-6 hidden"></div>
+                </div>
+                
+                <div class="text-center">
+                    <button onclick="loadRandomChallenge()" 
+                            class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        New Challenge
+                    </button>
+                </div>
+            `;
+        }
+
+        function checkChallengeAnswer(correctIndex, explanation) {
+            const selectedAnswer = document.querySelector('input[name="challengeAnswer"]:checked');
+            if (!selectedAnswer) {
+                alert('Please select an answer');
+                return;
+            }
+            
+            const answerIndex = parseInt(selectedAnswer.value);
+            const isCorrect = answerIndex === correctIndex;
+            
+            const resultDiv = document.getElementById('challengeResult');
+            resultDiv.classList.remove('hidden');
+            
+            if (isCorrect) {
+                resultDiv.innerHTML = `
+                    <div class="p-6 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="flex items-center mb-3">
+                            <span class="text-3xl mr-3">🏆</span>
+                            <span class="text-green-800 font-bold text-xl">Challenge Completed!</span>
+                        </div>
+                        <p class="text-green-700 mb-3">${explanation}</p>
+                        <div class="flex items-center">
+                            <span class="text-2xl mr-2">🪙</span>
+                            <span class="text-green-800 font-semibold">+15 Tokens Earned!</span>
+                        </div>
+                    </div>
+                `;
+                
+                gameState.tokens += 15;
+                gameState.totalScore += 150;
+                updateDashboardStats();
+                showSuccessModal("Challenge completed!", 15);
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="p-6 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-center mb-3">
+                            <span class="text-3xl mr-3">💪</span>
+                            <span class="text-red-800 font-bold text-xl">Keep Trying!</span>
+                        </div>
+                        <p class="text-red-700">${explanation}</p>
+                    </div>
+                `;
+                
+                // Deduct tokens after 5 attempts
+                challengeAttempts++;
+                if (challengeAttempts > 5 && gameState.tokens > 0) {
+                    gameState.tokens = Math.max(0, gameState.tokens - 3);
+                    updateDashboardStats();
+                }
+            }
+            
+            saveUserProgress();
+        }
+
+        // Role-playing game functions
+        function startRolePlayingGame() {
+            showView('rpgView');
+            loadRoleSelection();
+        }
+
+        function loadRoleSelection() {
+            document.getElementById('rpgContent').innerHTML = `
+                <div class="text-center mb-8">
+                    <h3 class="text-2xl font-bold mb-4">Choose Your Role</h3>
+                    <p class="text-gray-600 mb-8">Each role presents unique statistical challenges!</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    ${Object.entries(rpgScenarios).map(([key, scenario]) => `
+                        <div class="card-hover bg-white border-2 border-gray-200 rounded-xl p-6 cursor-pointer hover:border-blue-500 transition-colors"
+                             onclick="startRPGScenario('${key}')">
+                            <div class="text-4xl mb-4 text-center">
+                                ${key === 'observer' ? '🔍' : key === 'producer' ? '🏭' : '🏛️'}
+                            </div>
+                            <h4 class="text-xl font-semibold mb-2 text-center">${scenario.title}</h4>
+                            <p class="text-gray-600 text-center">${scenario.description}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function startRPGScenario(roleKey) {
+            const scenario = rpgScenarios[roleKey];
+            
+            document.getElementById('rpgContent').innerHTML = `
+                <div class="mb-6">
+                    <button onclick="loadRoleSelection()" class="text-blue-600 hover:text-blue-800 mb-4">← Choose Different Role</button>
+                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl mb-6">
+                        <h3 class="text-2xl font-bold mb-2">${scenario.title}</h3>
+                        <p class="text-purple-100">${scenario.description}</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h4 class="text-xl font-semibold mb-4">📖 Scenario</h4>
+                    <p class="mb-6 text-gray-700 leading-relaxed">${scenario.scenario}</p>
+                    
+                    <h4 class="text-xl font-semibold mb-4">🎯 Your Challenge</h4>
+                    <p class="mb-6 text-lg font-medium">${scenario.challenge}</p>
+                    
+                    <div class="space-y-3 mb-6">
+                        ${scenario.options.map((option, index) => `
+                            <label class="flex items-center p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-purple-50 transition-colors">
+                                <input type="radio" name="rpgAnswer" value="${index}" class="mr-3">
+                                <span class="text-lg">${option}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                    
+                    <button onclick="checkRPGAnswer(${scenario.correct}, '${scenario.explanation}')" 
+                            class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors text-lg font-semibold">
+                        Complete Mission
+                    </button>
+                    
+                    <div id="rpgResult" class="mt-6 hidden"></div>
+                </div>
+            `;
+        }
+
+        function checkRPGAnswer(correctIndex, explanation) {
+            const selectedAnswer = document.querySelector('input[name="rpgAnswer"]:checked');
+            if (!selectedAnswer) {
+                alert('Please select an answer');
+                return;
+            }
+            
+            const answerIndex = parseInt(selectedAnswer.value);
+            const isCorrect = answerIndex === correctIndex;
+            
+            const resultDiv = document.getElementById('rpgResult');
+            resultDiv.classList.remove('hidden');
+            
+            if (isCorrect) {
+                resultDiv.innerHTML = `
+                    <div class="p-6 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="flex items-center mb-3">
+                            <span class="text-3xl mr-3">🎖️</span>
+                            <span class="text-green-800 font-bold text-xl">Mission Accomplished!</span>
+                        </div>
+                        <p class="text-green-700 mb-3">${explanation}</p>
+                        <div class="flex items-center mb-4">
+                            <span class="text-2xl mr-2">🪙</span>
+                            <span class="text-green-800 font-semibold">+20 Tokens Earned!</span>
+                        </div>
+                        <button onclick="loadRoleSelection()" 
+                                class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                            Try Another Role
+                        </button>
+                    </div>
+                `;
+                
+                gameState.tokens += 20;
+                gameState.totalScore += 200;
+                updateDashboardStats();
+                showSuccessModal("Mission accomplished!", 20);
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="p-6 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-center mb-3">
+                            <span class="text-3xl mr-3">🎯</span>
+                            <span class="text-red-800 font-bold text-xl">Mission Failed</span>
+                        </div>
+                        <p class="text-red-700 mb-3">${explanation}</p>
+                        <button onclick="loadRoleSelection()" 
+                                class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+                
+                // Deduct tokens after 5 attempts
+                challengeAttempts++;
+                if (challengeAttempts > 5 && gameState.tokens > 0) {
+                    gameState.tokens = Math.max(0, gameState.tokens - 5);
+                    updateDashboardStats();
+                }
+            }
+            
+            saveUserProgress();
+        }
+
+        // Success modal functions
+        function showSuccessModal(message, tokens) {
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('tokensEarned').textContent = `+${tokens} Tokens`;
+            document.getElementById('successModal').classList.remove('hidden');
+            document.getElementById('successModal').classList.add('flex');
+            
+            // Add token animation
+            const tokenElement = document.getElementById('tokensEarned');
+            tokenElement.classList.add('token-animation');
+            setTimeout(() => {
+                tokenElement.classList.remove('token-animation');
+            }, 600);
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.add('hidden');
+            document.getElementById('successModal').classList.remove('flex');
+        }
+
+        // Auto-save progress every 30 seconds
+        setInterval(() => {
+            if (currentUser) {
+                saveUserProgress();
+            }
+        }, 30000);
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for existing session
+            const lastUser = localStorage.getItem('statisticade_lastUser');
+            if (lastUser) {
+                document.getElementById('username').value = lastUser;
+            }
+            
+            // Add enter key support for login
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+            
+            document.getElementById('newPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    signup();
+                }
+            });
+        });
+
+        // Software testing function
+        function runSoftwareTests() {
+            console.log('🧪 Running Statisticade Software Tests...');
+            
+            const tests = [
+                {
+                    name: 'User Registration',
+                    test: () => {
+                        // Test user creation
+                        const testUser = {
+                            username: 'testuser123',
+                            password: '1234'
+                        };
+                        
+                        localStorage.setItem(`statisticade_user_${testUser.username}`, JSON.stringify({
+                            username: testUser.username,
+                            password: testUser.password,
+                            progress: {},
+                            tokens: 0
+                        }));
+                        
+                        const saved = localStorage.getItem(`statisticade_user_${testUser.username}`);
+                        return saved !== null;
+                    }
+                },
+                {
+                    name: 'Progress Tracking',
+                    test: () => {
+                        // Test progress saving and loading
+                        const testProgress = {
+                            basics: {
+                                0: { completed: true },
+                                1: { completed: false }
+                            }
+                        };
+                        
+                        userProgress = testProgress;
+                        saveUserProgress();
+                        
+                        return Object.keys(userProgress.basics).length === 2;
+                    }
+                },
+                {
+                    name: 'Token System',
+                    test: () => {
+                        // Test token awarding
+                        const initialTokens = gameState.tokens;
+                        gameState.tokens += 10;
+                        return gameState.tokens === initialTokens + 10;
+                    }
+                },
+                {
+                    name: 'Learning Path Navigation',
+                    test: () => {
+                        // Test learning path structure
+                        return Object.keys(learningPaths).length === 5 &&
+                               learningPaths.basics.lessons.length > 0;
+                    }
+                },
+                {
+                    name: 'Exercise Validation',
+                    test: () => {
+                        // Test exercise structure
+                        const firstLesson = learningPaths.basics.lessons[0];
+                        return firstLesson.exercise &&
+                               firstLesson.exercise.question &&
+                               firstLesson.exercise.options &&
+                               typeof firstLesson.exercise.correct === 'number';
+                    }
+                },
+                {
+                    name: 'Normal Curve Simulator',
+                    test: () => {
+                        // Test simulator parameters
+                        const meanSlider = document.getElementById('meanSlider');
+                        const stdSlider = document.getElementById('stdSlider');
+                        return meanSlider && stdSlider &&
+                               meanSlider.min && meanSlider.max &&
+                               stdSlider.min && stdSlider.max;
+                    }
+                },
+                {
+                    name: 'Challenge System',
+                    test: () => {
+                        // Test challenge structure
+                        return challenges.length > 0 &&
+                               challenges[0].question &&
+                               challenges[0].options &&
+                               challenges[0].scenario;
+                    }
+                },
+                {
+                    name: 'RPG Scenarios',
+                    test: () => {
+                        // Test RPG structure
+                        return Object.keys(rpgScenarios).length === 3 &&
+                               rpgScenarios.observer.title &&
+                               rpgScenarios.observer.challenge;
+                    }
+                },
+                {
+                    name: 'Responsive Design',
+                    test: () => {
+                        // Test responsive classes
+                        const dashboard = document.getElementById('mainDashboard');
+                        return dashboard.className.includes('max-w-7xl') &&
+                               dashboard.className.includes('mx-auto');
+                    }
+                },
+                {
+                    name: 'Local Storage Functionality',
+                    test: () => {
+                        // Test localStorage availability
+                        try {
+                            localStorage.setItem('test', 'test');
+                            localStorage.removeItem('test');
+                            return true;
+                        } catch (e) {
+                            return false;
+                        }
+                    }
+                }
+            ];
+            
+            let passed = 0;
+            let failed = 0;
+            
+            tests.forEach(test => {
+                try {
+                    if (test.test()) {
+                        console.log(`✅ ${test.name}: PASSED`);
+                        passed++;
+                    } else {
+                        console.log(`❌ ${test.name}: FAILED`);
+                        failed++;
+                    }
+                } catch (error) {
+                    console.log(`❌ ${test.name}: ERROR - ${error.message}`);
+                    failed++;
+                }
+            });
+            
+            console.log(`\n📊 Test Results: ${passed} passed, ${failed} failed`);
+            console.log(`✨ Test Coverage: ${((passed / tests.length) * 100).toFixed(1)}%`);
+            
+            if (failed === 0) {
+                console.log('🎉 All tests passed! Statisticade is ready for use.');
+            } else {
+                console.log('⚠️ Some tests failed. Please review the implementation.');
+            }
+            
+            return { passed, failed, total: tests.length };
+        }
+
+        // Run tests on load (can be removed in production)
+        setTimeout(() => {
+            runSoftwareTests();
+        }, 1000);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'983dedf344086784',t:'MTc1ODY3MTI3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
